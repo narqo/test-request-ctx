@@ -1,0 +1,20 @@
+{
+  "name": "test-request-ctx",
+  "version": "0.0.1",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "luster configs/current/luster.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Vladimir Varankin <nek.narqo@gmail.com> (http://github.com/narqo)",
+  "license": "WTFPL",
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "connect": "^3.4.0",
+    "json-stringify-safe": "^5.0.1",
+    "luster": "^0.5.8",
+    "node-uuid": "^1.4.7",
+    "vow-asker": "^1.0.0"
+  }
+}
