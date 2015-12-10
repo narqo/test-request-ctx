@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 var http = require('http');
 var connect = require('connect');
@@ -11,25 +11,47 @@ var Context = require('../lib/context').Context;
 
 var app = connect();
 
+const org = 'nodules';
+const repo = 'asker';
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(function(req, res, next) {
     const ctx = req.ctx = new Context();
+
     ctx.start();
 
-    // https://api.github.com/users/nodules/repos
-    // https://api.github.com/repos/nodules/asker
+    res.once('finish', done);
+    res.once('error', cleanup);
+    res.once('close', cleanup);
 
-    const org = 'nodules';
-    const repo = 'asker';
+    function done() {
+        ctx.stop();
+        console.error(jsonStringify(req.ctx, null, 2));
+    }
 
-    resource(ctx, 'github', { path: `/users/${org}/repos` })
-        .then(data => resource(ctx, 'github', { path: `/repos/${org}/${repo}` }))
+    function cleanup() {
+        res.removeEventListener('finish', done);
+        res.removeEventListener('error', cleanup);
+        res.removeEventListener('close', cleanup);
+    }
+
+    next();
+});
+
+app.use(function(req, res, next) {
+    resource(req.ctx, 'github/repos', { org }).then(() => next());
+});
+
+app.use(function(req, res, next) {
+    const ctx = req.ctx;
+
+    resource(ctx, 'github/repo', { org, repo })
         .then(data => vow.all(
             [
-                resource(ctx, 'github', { path: `/repos/${org}/${repo}/issues` }),
-                resource(ctx, 'github', { path: `/repos/${org}/${repo}/pulls` }),
+                resource(ctx, 'github/issues', { org, repo }),
+                resource(ctx, 'github/pulls', { org, repo }),
             ]
         ))
         .then(data => {
@@ -37,11 +59,6 @@ app.use(function(req, res, next) {
         })
         .fail(next);
 });
-
-app.use(function(req, res) {
-    req.ctx.stop();
-    console.error(jsonStringify(req.ctx, null, 2));
-})
 
 module.exports = function(port) {
     http.createServer(app).listen(port);
