@@ -41,17 +41,17 @@ app.use(function(req, res, next) {
 });
 
 app.use(function(req, res, next) {
-    resource(req.ctx, 'github/repos', { org }).then(() => next());
+    resource(req.ctx, 'github/repos.get', { org }).then(() => next());
 });
 
 app.use(function(req, res, next) {
     const ctx = req.ctx;
 
-    resource(ctx, 'github/repo', { org, repo })
+    resource(ctx, 'github/repo.get', { org, repo })
         .then(data => vow.all(
             [
-                resource(ctx, 'github/issues', { org, repo }),
-                resource(ctx, 'github/pulls', { org, repo }),
+                resource(ctx, 'github/issues.get', { org, repo }),
+                resource(ctx, 'github/pulls.get', { org, repo }),
             ]
         ))
         .then(data => {
